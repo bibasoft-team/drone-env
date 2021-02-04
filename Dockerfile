@@ -1,4 +1,4 @@
-FROM bibasoft/node-aws
+FROM node:alpine
 
 WORKDIR /bin/
 COPY package*.json ./
