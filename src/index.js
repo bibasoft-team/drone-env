@@ -9,6 +9,7 @@
  */
 
 const fs = require('fs')
+const path = require('path')
 const { processEnv } = require('./utils')
 
 function generate() {
@@ -16,16 +17,19 @@ function generate() {
 
 	if (!PLUGIN_OUTPUT) throw 'missing output setting'
 
+	const out_file = path.resolve(PLUGIN_OUTPUT)
+	console.log(__dirname, out_file)
+
 	const ENVS = JSON.parse(PLUGIN_ENVS)
 
 	const ENV_NAMES = Object.keys(ENVS)
 
 	const PROCESSED_ENVS = ENV_NAMES.map(e => `${e}=${processEnv(ENVS[e])}`).join('\n')
 
-	if (!fs.existsSync(PLUGIN_OUTPUT)) {
-		fs.writeFileSync(PLUGIN_OUTPUT, PROCESSED_ENVS)
+	if (!fs.existsSync(out_file)) {
+		fs.writeFileSync(out_file, PROCESSED_ENVS)
 	} else {
-		fs.appendFileSync(PLUGIN_OUTPUT, '\n' + PROCESSED_ENVS)
+		fs.appendFileSync(out_file, '\n' + PROCESSED_ENVS)
 	}
 }
 
