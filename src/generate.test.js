@@ -2,7 +2,7 @@ const fs = require('fs')
 
 const mock = require('mock-fs')
 
-const generate = require('./index')
+const generate = require('./generate')
 
 afterEach(() => {
 	delete process.env.PLUGIN_ENVS
