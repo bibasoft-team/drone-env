@@ -1,1 +1,3 @@
-require('./generate')
+const generate = require('./generate')
+
+generate()

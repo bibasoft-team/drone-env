@@ -1,9 +1,9 @@
 FROM node:alpine
 
-WORKDIR /bin/
+WORKDIR /bin/drone-env
 COPY package*.json ./
 RUN npm ci --only=production
 
 COPY src src
 
-ENTRYPOINT [ "node", "/bin/" ]
+ENTRYPOINT [ "node", "/bin/drone-env" ]
