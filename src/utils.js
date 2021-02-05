@@ -2,16 +2,31 @@
 function processEnv(env) {
 	if (isSimple(env)) return env
 
-	if (!('input' in env)) throw 'missing input field'
+	if (!('from' in env)) throw 'missing `from` field'
+	if (!('transform' in env)) throw 'missing `transform` field'
 
-	if (isRegexReplace(env)) return processReplace(env)
+	const res = env.transform.reduce((res, step) => {
+		if (isRegexReplace(step)) return processReplace(res, step)
+		if (isLowercaseReplace(step)) return processLowercase(res)
+		if (isUppercaseReplace(step)) return processUppercase(res)
 
-	throw 'invalid config'
+		throw 'invalid config'
+	}, env.from)
+
+	return res
 }
 
-function processReplace(env) {
+function processReplace(from, env) {
 	const regex = parseRegex(env.regex)
-	return env.input.replace(regex, env.replace)
+	return from.replace(regex, env.replace)
+}
+
+function processLowercase(from) {
+	return from.toLowerCase()
+}
+
+function processUppercase(from) {
+	return from.toUpperCase()
 }
 
 function isSimple(env) {
@@ -20,6 +35,14 @@ function isSimple(env) {
 
 function isRegexReplace(env) {
 	return typeof env === 'object' && 'regex' in env && 'replace' in env
+}
+
+function isLowercaseReplace(env) {
+	return env === 'lowercase'
+}
+
+function isUppercaseReplace(env) {
+	return env === 'uppercase'
 }
 
 function parseRegex(regex) {
@@ -35,8 +58,12 @@ module.exports = {
 
 	isSimple,
 	isRegexReplace,
+	isLowercaseReplace,
+	isUppercaseReplace,
 
 	processReplace,
+	processLowercase,
+	processUppercase,
 
 	parseRegex,
 }

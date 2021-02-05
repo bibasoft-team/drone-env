@@ -1,4 +1,14 @@
-const { processEnv, isSimple, isRegexReplace, processReplace, parseRegex } = require('./utils')
+const {
+	processEnv,
+	isSimple,
+	isRegexReplace,
+	processReplace,
+	parseRegex,
+	isLowercaseReplace,
+	isUppercaseReplace,
+	processLowercase,
+	processUppercase,
+} = require('./utils')
 
 test('isSimple — string to be true', () => {
 	expect(isSimple('string')).toBe(true)
@@ -17,18 +27,34 @@ test('isSimple — undefined to be true', () => {
 })
 
 test('isSimple — object to be false', () => {
-	expect(isSimple({ e: 1 })).toBe(false)
+	expect(isSimple({ transform: [{ e: 1 }] })).toBe(false)
 })
 
 test('isSimple — array to be false', () => {
 	expect(isSimple([2, 4])).toBe(false)
 })
 
+test('isLowercase – lowercase to be true', () => {
+	expect(isLowercaseReplace('lowercase')).toBe(true)
+})
+
+test('isLowercase – other words to be false', () => {
+	expect(isLowercaseReplace('sample')).toBe(false)
+})
+
+test('isUppercase – uppercase to be true', () => {
+	expect(isUppercaseReplace('uppercase')).toBe(true)
+})
+
+test('isUppercase – other words to be false', () => {
+	expect(isUppercaseReplace('sample')).toBe(false)
+})
+
 test('isRegexReplace — replace regex to be true', () => {
 	expect(
 		isRegexReplace({
 			regex: /test/,
-			input: 'test',
+			from: 'test',
 			replace: '$1',
 		}),
 	).toBe(true)
@@ -38,7 +64,7 @@ test('isRegexReplace — other regex to be false', () => {
 	expect(
 		isRegexReplace({
 			regex: /test/,
-			input: 'test',
+			from: 'test',
 			out: '$1',
 		}),
 	).toBe(false)
@@ -75,6 +101,22 @@ test('parseRegex — the wrong expression should not be parsed', () => {
 	}).toThrow()
 })
 
+test('processLowercase – must transform to lowercase', () => {
+	expect(processLowercase('QWERTY')).toBe('qwerty')
+})
+
+test('processLowercase – partical transform to lowercase', () => {
+	expect(processLowercase('QWErty')).toBe('qwerty')
+})
+
+test('processUppercase – must transform to uppercase', () => {
+	expect(processUppercase('qwerty')).toBe('QWERTY')
+})
+
+test('processUppercase – partical transform to uppercase', () => {
+	expect(processUppercase('QWErty')).toBe('QWERTY')
+})
+
 test('processReplace — wrong regex', () => {
 	expect(() => {
 		processReplace({ regex: /[0-9])/ })
@@ -82,43 +124,42 @@ test('processReplace — wrong regex', () => {
 })
 
 test('processReplace — simple text replace', () => {
-	expect(
-		processReplace({ regex: /([0-9]+)/g.source, input: 'abcABC1234_abc', replace: 'xyz' }),
-	).toBe('abcABCxyz_abc')
+	expect(processReplace('abcABC1234_abc', { regex: /([0-9]+)/g.source, replace: 'xyz' })).toBe(
+		'abcABCxyz_abc',
+	)
 })
 
 test('processReplace — replace with groups', () => {
 	expect(
-		processReplace({
+		processReplace('abcABC_1234_abc', {
 			regex: /(.*)_([0-9]+)_(.*)/g.source,
-			input: 'abcABC_1234_abc',
 			replace: '$2',
 		}),
 	).toBe('1234')
 })
+
 test('processReplace — escape groups', () => {
 	expect(
-		processReplace({
+		processReplace('abcABC_1234_abc', {
 			regex: /(.*)_([0-9]+)_(.*)/g.source,
-			input: 'abcABC_1234_abc',
 			replace: '$$10',
 		}),
 	).toBe('$10')
 })
+
 test('processReplace — allow empty replace', () => {
 	expect(
-		processReplace({
+		processReplace('abcABC_1234_abc', {
 			regex: /[0-9]+/g.source,
-			input: 'abcABC_1234_abc',
 			replace: '',
 		}),
 	).toBe('abcABC__abc')
 })
+
 test('processReplace — replacement with a non-existent group', () => {
 	expect(
-		processReplace({
+		processReplace('abcABC_1234_abc', {
 			regex: /[0-9]+/g.source,
-			input: 'abcABC_1234_abc',
 			replace: '$2',
 		}),
 	).toBe('abcABC_$2_abc')
@@ -127,35 +168,86 @@ test('processReplace — replacement with a non-existent group', () => {
 test('processEnv — string', () => {
 	expect(processEnv('string')).toBe('string')
 })
+
 test('processEnv — number', () => {
 	expect(processEnv(123)).toBe(123)
 })
+
 test('processEnv — boolean', () => {
 	expect(processEnv(true)).toBe(true)
 })
+
 test('processEnv — undefined', () => {
 	expect(processEnv(undefined)).toBe(undefined)
 })
-test('processEnv — missing input field', () => {
+
+test('processEnv — missing field `from`', () => {
 	expect(() => {
-		processEnv({ regex: 'wgwg', replace: 'tre' })
+		processEnv({ transform: [{ regex: 'wgwg', replace: 'tre' }] })
 	}).toThrow()
 })
+
+test('processEnv — missing field `transform`', () => {
+	expect(() => {
+		processEnv({ from: 'test' })
+	}).toThrow()
+})
+
 test('processEnv — wrong regex', () => {
 	expect(() => {
-		processEnv({ regex: 'wgwg)', replace: 'tre', input: 'wfwg' })
+		processEnv({ regex: 'wgwg)', replace: 'tre', from: 'wfwg' })
 	}).toThrow()
 })
+
 test('processEnv — incorrect config', () => {
 	expect(() => {
-		processEnv({ input: 'test' })
+		processEnv({ from: 'test', transform: [{ regex: 'test' }] })
 	}).toThrow()
 })
+
 test('processEnv — simple replace', () => {
-	expect(processEnv({ regex: /[0-9]+/g.source, input: 'test123', replace: '4' })).toBe('test4')
+	expect(
+		processEnv({ from: 'test123', transform: [{ regex: /[0-9]+/g.source, replace: '4' }] }),
+	).toBe('test4')
 })
+
 test('processEnv — replace with groups', () => {
-	expect(processEnv({ regex: /([a-z]+)([0-9]+)/g.source, input: 'test123', replace: '$2' })).toBe(
-		'123',
-	)
+	expect(
+		processEnv({
+			from: 'test123',
+			transform: [{ regex: /([a-z]+)([0-9]+)/g.source, replace: '$2' }],
+		}),
+	).toBe('123')
+})
+
+test('processEnv — lowercase', () => {
+	expect(processEnv({ from: 'QWERTY', transform: ['lowercase'] })).toBe('qwerty')
+})
+
+test('processEnv — uppercase', () => {
+	expect(processEnv({ from: 'qwerty', transform: ['uppercase'] })).toBe('QWERTY')
+})
+
+test('processEnv — composite lowercase and regex', () => {
+	expect(
+		processEnv({ from: '123_ok', transform: [{ regex: '[0-9]+', replace: 'TEST' }, 'lowercase'] }),
+	).toBe('test_ok')
+})
+
+test('processEnv — composite regex and regex', () => {
+	expect(
+		processEnv({
+			from: '123_ok',
+			transform: [
+				{ regex: '[0-9]+', replace: 'test_ok_ok' },
+				{ regex: '(_ok)+', replace: '123' },
+			],
+		}),
+	).toBe('test123')
+})
+
+test('processEnv — composite transforms order', () => {
+	expect(
+		processEnv({ from: '123_OK', transform: ['lowercase', { regex: '[0-9]+', replace: 'TEST' }] }),
+	).toBe('TEST_ok')
 })

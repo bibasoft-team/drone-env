@@ -1,7 +1,6 @@
 const fs = require('fs')
 
 const mock = require('mock-fs')
-const { file } = require('mock-fs/lib/filesystem')
 
 const generate = require('./index')
 
@@ -38,9 +37,13 @@ test('simple string env', () => {
 test('regex replace env', () => {
 	process.env.PLUGIN_ENVS = JSON.stringify({
 		TEST: {
-			regex: '[0-9]+',
-			input: 'test_234',
-			replace: 'ok',
+			from: 'test_234',
+			transform: [
+				{
+					regex: '[0-9]+',
+					replace: 'ok',
+				},
+			],
 		},
 	})
 	process.env.PLUGIN_OUTPUT = file_name
@@ -51,9 +54,13 @@ test('regex replace env', () => {
 test('wrong regex', () => {
 	process.env.PLUGIN_ENVS = JSON.stringify({
 		TEST: {
-			regex: '[0-9]+)',
-			input: 'test_234',
-			replace: 'ok',
+			from: 'test_234',
+			transform: [
+				{
+					regex: '[0-9]+)',
+					replace: 'ok',
+				},
+			],
 		},
 	})
 	process.env.PLUGIN_OUTPUT = file_name
@@ -63,9 +70,13 @@ test('wrong regex', () => {
 test('missing file_name', () => {
 	process.env.PLUGIN_ENVS = JSON.stringify({
 		TEST: {
-			regex: '[0-9]+',
-			input: 'test_234',
-			replace: 'ok',
+			from: 'test_234',
+			transform: [
+				{
+					regex: '[0-9]+',
+					replace: 'ok',
+				},
+			],
 		},
 	})
 	expect(() => generate()).toThrow()
@@ -95,9 +106,13 @@ test('multiple types env', () => {
 	process.env.PLUGIN_ENVS = JSON.stringify({
 		TEST: 'api.net',
 		TEST2: {
-			regex: '[0-9]+',
-			input: 'test_123',
-			replace: 'ok'
+			from: 'test_123',
+			transform: [
+				{
+					regex: '[0-9]+',
+					replace: 'ok',
+				},
+			],
 		},
 	})
 	process.env.PLUGIN_OUTPUT = file_name

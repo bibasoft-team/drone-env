@@ -1,0 +1,14 @@
+steps:
+  - name: test
+    image: bibasoft/drone-env
+    settings:
+      envs:
+        TEST:
+          from: "${TEST}"
+          transform:
+            - regex: "[0-9]+"
+              replace: ""
+            - uppercase
+            - lowercase
+            - regex: "[0-1]+"
+              replace: "wgh"
