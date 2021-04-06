@@ -187,10 +187,10 @@ test('processEnv — missing field `from`', () => {
 	}).toThrow()
 })
 
-test('processEnv — missing field `transform`', () => {
+test('processEnv —test without transform', () => {
 	expect(() => {
 		processEnv({ from: 'test' })
-	}).toThrow()
+	}).toBe('test')
 })
 
 test('processEnv — wrong regex', () => {

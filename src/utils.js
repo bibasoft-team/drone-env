@@ -3,7 +3,9 @@ function processEnv(env) {
 	if (isSimple(env)) return env
 
 	if (!('from' in env)) throw 'missing `from` field'
-	if (!('transform' in env)) throw 'missing `transform` field'
+	if (!('transform' in env)) {
+		return env.from
+	}
 
 	const res = env.transform.reduce((res, step) => {
 		if (isRegexReplace(step)) return processReplace(res, step)
