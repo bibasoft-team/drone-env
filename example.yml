@@ -2,6 +2,7 @@ steps:
   - name: test
     image: bibasoft/drone-env
     settings:
+      output: .env
       envs:
         TEST:
           from: "${TEST}"
@@ -12,3 +13,4 @@ steps:
             - lowercase
             - regex: "[0-1]+"
               replace: "wgh"
+        HOST: "${HOST}"
