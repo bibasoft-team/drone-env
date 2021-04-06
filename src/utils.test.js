@@ -187,16 +187,12 @@ test('processEnv — missing field `from`', () => {
 	}).toThrow()
 })
 
-test('processEnv —test without transform', () => {
-	expect(() => {
-		processEnv({ from: 'test' })
-	}).toBe('test')
+test('processEnv — test without transform', () => {
+	expect(processEnv({ from: 'test' })).toBe('test')
 })
 
 test('processEnv — wrong regex', () => {
-	expect(() => {
-		processEnv({ regex: 'wgwg)', replace: 'tre', from: 'wfwg' })
-	}).toThrow()
+	expect(processEnv({ regex: 'wgwg)', replace: 'tre', from: 'wfwg' })).toBe('wfwg')
 })
 
 test('processEnv — incorrect config', () => {
