@@ -13,25 +13,30 @@ const path = require('path')
 const { processEnv } = require('./utils')
 
 function generate() {
-	const { PLUGIN_OUTPUT, PLUGIN_ENVS } = process.env
+	const { PLUGIN_OUTPUT = '.env' } = process.env
 
 	if (!PLUGIN_OUTPUT) throw 'missing output setting'
 
 	const out_file = path.resolve(PLUGIN_OUTPUT)
-	console.warn(__dirname, out_file)
 
-	const ENVS = JSON.parse(PLUGIN_ENVS)
+	const PROCESSED_ENVS = Object.keys(process.env)
+		.filter(k => k.startsWith('PLUGIN_') && k !== 'PLUGIN_OUTPUT')
+		.reduce(
+			(all, name) => ({
+				...all,
+				[name.slice('PLUGIN_'.length)]: processEnv(process.env[name]),
+			}),
+			{},
+		)
 
-	const ENV_NAMES = Object.keys(ENVS)
-
-	console.log(ENVS)
-
-	const PROCESSED_ENVS = ENV_NAMES.map(e => `${e}=${processEnv(ENVS[e])}`).join('\n')
+	const out = Object.keys(PROCESSED_ENVS)
+		.map(name => `${name}=${PROCESSED_ENVS[name]}`)
+		.join('\n')
 
 	if (!fs.existsSync(out_file)) {
-		fs.writeFileSync(out_file, PROCESSED_ENVS)
+		fs.writeFileSync(out_file, out)
 	} else {
-		fs.appendFileSync(out_file, '\n' + PROCESSED_ENVS)
+		fs.appendFileSync(out_file, '\n' + out)
 	}
 }
 

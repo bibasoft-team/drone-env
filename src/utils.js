@@ -1,11 +1,19 @@
+const envRegex = /\$\{([_a-zA-Z][_a-zA-Z0-9]*)(:([^}]*))?\}/gm
+
 // procc
 function processEnv(env) {
-	if (isSimple(env)) return env
-
-	if (!('from' in env)) throw 'missing `from` field'
-	if (!('transform' in env)) {
-		return env.from
+	if (isJsonString(env)) {
+		return processTransform(JSON.parse(env))
 	}
+
+	return replaceEnvVars(env)
+}
+
+function processTransform(env) {
+	if (!('from' in env)) throw 'missing `from` field'
+	if (!('transform' in env)) throw 'missing `transform` field'
+
+	const from = replaceEnvVars(env.from)
 
 	const res = env.transform.reduce((res, step) => {
 		if (isRegexReplace(step)) return processReplace(res, step)
@@ -13,7 +21,7 @@ function processEnv(env) {
 		if (isUppercaseReplace(step)) return processUppercase(res)
 
 		throw 'invalid config'
-	}, env.from)
+	}, from)
 
 	return res
 }
@@ -29,10 +37,6 @@ function processLowercase(from) {
 
 function processUppercase(from) {
 	return from.toUpperCase()
-}
-
-function isSimple(env) {
-	return ['string', 'number', 'boolean', 'undefined'].includes(typeof env)
 }
 
 function isRegexReplace(env) {
@@ -55,10 +59,28 @@ function parseRegex(regex) {
 	}
 }
 
+function isJsonString(str) {
+	try {
+		JSON.parse(str)
+	} catch (e) {
+		return false
+	}
+	return true
+}
+
+function replaceEnvVars(str) {
+	if (envRegex.test(str)) {
+		return str.replace(envRegex, (_, env_name) => {
+			return process.env[env_name]
+		})
+	}
+
+	return str
+}
+
 module.exports = {
 	processEnv,
 
-	isSimple,
 	isRegexReplace,
 	isLowercaseReplace,
 	isUppercaseReplace,

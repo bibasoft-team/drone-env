@@ -1,16 +1,36 @@
+---
+kind: pipeline
+type: docker
+name: test
+
 steps:
   - name: test
-    image: bibasoft/drone-env
+    image: node:alpine
+    environment:
+      HOST: example.com
+      TESTING: 123env
     settings:
-      output: .env
-      envs:
-        TEST:
-          from: "${TEST}"
-          transform:
-            - regex: "[0-9]+"
-              replace: ""
-            - uppercase
-            - lowercase
-            - regex: "[0-1]+"
-              replace: "wgh"
-        HOST: "${HOST}"
+      output_file: .env
+      TEST:
+        from: "123env"
+        transform:
+          - regex: "[0-9]+"
+            replace: "1234"
+          - uppercase
+          - lowercase
+          - regex: "[0-1]+"
+            replace: "wgh"
+      TEST2:
+        from: "$${HOST} $${HOST}"
+        transform:
+          - regex: "example.com"
+            replace: "1234"
+      HOST: "$${HOST}"
+      HOST2: "test $${HOST}_ertg"
+      HOST3: "test $${HOST} $${TESTING}"
+      JOPA:
+        from_secret: SECRET_2
+      JOPA2:
+        from_secret: SECRET_2
+    commands:
+      - node .
