@@ -24,6 +24,7 @@ function generate() {
 
 	const ENV_NAMES = Object.keys(ENVS)
 
+        console.log(process.env)
 	console.log(ENVS)
 
 	const PROCESSED_ENVS = ENV_NAMES.map(e => `${e}=${processEnv(ENVS[e])}`).join('\n')
