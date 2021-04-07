@@ -13,21 +13,31 @@ const path = require('path')
 const { processEnv } = require('./utils')
 
 function generate() {
-	const { PLUGIN_OUTPUT = '.env' } = process.env
+	const { PLUGIN_OUTPUT = '.env', PLUGIN_ENVS } = process.env
 
 	if (!PLUGIN_OUTPUT) throw 'missing output setting'
 
 	const out_file = path.resolve(PLUGIN_OUTPUT)
 
-	const PROCESSED_ENVS = Object.keys(process.env)
-		.filter(k => k.startsWith('PLUGIN_') && k !== 'PLUGIN_OUTPUT')
-		.reduce(
-			(all, name) => ({
-				...all,
-				[name.slice('PLUGIN_'.length)]: processEnv(process.env[name]),
-			}),
-			{},
-		)
+	const ENVS = PLUGIN_ENVS
+		? JSON.parse(PLUGIN_ENVS)
+		: Object.keys(process.env)
+				.filter(k => k.startsWith('PLUGIN_') && k !== 'PLUGIN_OUTPUT')
+				.reduce(
+					(all, name) => ({
+						...all,
+						[name.slice('PLUGIN_'.length)]: process.env[name],
+					}),
+					{},
+				)
+
+	const PROCESSED_ENVS = Object.keys(ENVS).reduce(
+		(all, name) => ({
+			...all,
+			[name]: processEnv(ENVS[name]),
+		}),
+		{},
+	)
 
 	const out = Object.keys(PROCESSED_ENVS)
 		.map(name => `${name}=${PROCESSED_ENVS[name]}`)

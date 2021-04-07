@@ -2,6 +2,10 @@ const envRegex = /\$\{([_a-zA-Z][_a-zA-Z0-9]*)(:([^}]*))?\}/gm
 
 // procc
 function processEnv(env) {
+	if (typeof env === 'object') {
+		return processTransform(env)
+	}
+
 	if (isJsonString(env)) {
 		return processTransform(JSON.parse(env))
 	}
@@ -61,11 +65,11 @@ function parseRegex(regex) {
 
 function isJsonString(str) {
 	try {
-		JSON.parse(str)
+		const val = JSON.parse(str)
+		return typeof val === 'object'
 	} catch (e) {
 		return false
 	}
-	return true
 }
 
 function replaceEnvVars(str) {
